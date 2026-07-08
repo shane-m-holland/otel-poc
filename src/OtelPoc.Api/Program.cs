@@ -4,10 +4,12 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OtelPoc.Api.Clients;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 
 builder.Services.AddHttpClient<DownstreamClient>(client =>
 {
@@ -42,6 +44,8 @@ builder.Logging.AddOpenTelemetry(logging =>
 
 var app = builder.Build();
 
+app.MapOpenApi();
+app.MapScalarApiReference();
 app.MapControllers();
 
 app.Run();

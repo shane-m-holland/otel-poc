@@ -31,7 +31,7 @@ Status legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | ✅ | Receive controller | `src/OtelPoc.Api/Controllers/ReceiveController.cs` |
 | ✅ | Send controller | `src/OtelPoc.Api/Controllers/SendController.cs` |
 | ✅ | Typed downstream HttpClient | `src/OtelPoc.Api/Clients/DownstreamClient.cs` |
-| ⬜ | `dotnet test` all green | — (run in devcontainer) |
+| ✅ | `dotnet test` all green | — (run in devcontainer) |
 
 ## Milestone 4 — OpenTelemetry wiring
 | Status | Item | Artifact |
@@ -59,12 +59,12 @@ Status legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ## Milestone 7 — End-to-end verification
 | Status | Item |
 | :----: | ---- |
-| ⬜ | `dotnet test` passes in devcontainer |
-| ⬜ | Stack boots under podman-compose; both `/health` respond |
-| ⬜ | `/log` message visible in Grafana Loki |
-| ⬜ | `/send` produces one trace spanning service-a + service-b in Tempo |
-| ⬜ | Logs carry matching `trace_id`; Tempo↔Loki linking works |
-| ⬜ | Metrics visible in Grafana Prometheus/Mimir |
+| ✅ | `dotnet test` passes in devcontainer |
+| ✅ | Stack boots under podman-compose; both `/health` respond |
+| ✅ | `/log` message visible in Grafana Loki |
+| ✅ | `/send` produces one trace spanning service-a + service-b in Tempo |
+| ✅ | Logs carry matching `trace_id`; Tempo↔Loki linking works |
+| ✅ | Metrics visible in Grafana Prometheus/Mimir |
 | ⬜ | (Optional) Cribl path verified |
 
 ## Notes
