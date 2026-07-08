@@ -1,0 +1,128 @@
+networks:
+  otel-poc:
+    driver: bridge
+
+services:
+  # ─────────────────────────────────────────────
+  # Grafana LGTM all-in-one (Grafana + Loki + Tempo + Prometheus/Mimir)
+  # ─────────────────────────────────────────────
+  grafana-lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: grafana-lgtm
+    networks:
+      - otel-poc
+    ports:
+      - "3000:3000"   # Grafana UI
+      - "4317:4317"   # OTLP gRPC (exposed for direct-to-grafana testing)
+      - "4318:4318"   # OTLP HTTP
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ─────────────────────────────────────────────
+  # OpenTelemetry Collector
+  # ─────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    networks:
+      - otel-poc
+    ports:
+      - "4319:4317"   # OTLP gRPC (host port offset to avoid clash with grafana-lgtm)
+      - "4320:4318"   # OTLP HTTP
+    volumes:
+      - ./deploy/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      grafana-lgtm:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:13133"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ─────────────────────────────────────────────
+  # Service A
+  # ─────────────────────────────────────────────
+  service-a:
+    build:
+      context: .
+      dockerfile: src/OtelPoc.Api/Dockerfile
+    container_name: service-a
+    networks:
+      - otel-poc
+    ports:
+      - "5001:8080"
+    env_file:
+      - .env
+    environment:
+      - OTEL_SERVICE_NAME=service-a
+      - SERVICE_INSTANCE_ID=service-a-1
+      - SEND_TARGET_URL=http://service-b:8080
+    depends_on:
+      otel-collector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─────────────────────────────────────────────
+  # Service B
+  # ─────────────────────────────────────────────
+  service-b:
+    build:
+      context: .
+      dockerfile: src/OtelPoc.Api/Dockerfile
+    container_name: service-b
+    networks:
+      - otel-poc
+    ports:
+      - "5002:8080"
+    env_file:
+      - .env
+    environment:
+      - OTEL_SERVICE_NAME=service-b
+      - SERVICE_INSTANCE_ID=service-b-1
+      - SEND_TARGET_URL=http://service-a:8080
+    depends_on:
+      otel-collector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─────────────────────────────────────────────
+  # Cribl Stream (opt-in via: --profile cribl)
+  # See deploy/cribl/README.md for setup instructions
+  # ─────────────────────────────────────────────
+  cribl:
+    image: cribl/cribl:latest
+    container_name: cribl
+    profiles:
+      - cribl
+    networks:
+      - otel-poc
+    ports:
+      - "9000:9000"   # Cribl UI
+      - "10080:10080" # OTLP ingest from collector
+    environment:
+      - CRIBL_VOLUME_DIR=/opt/cribl/config-volume
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s

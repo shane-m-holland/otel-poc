@@ -1,0 +1,13 @@
+# Build outputs — never commit host-generated obj/bin; container re-creates them
+bin/
+obj/
+
+# .NET user/IDE files
+*.user
+.vs/
+
+# Environment
+.env
+
+# macOS
+.DS_Store
