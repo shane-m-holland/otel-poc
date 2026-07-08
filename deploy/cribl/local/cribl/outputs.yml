@@ -1,0 +1,8 @@
+outputs:
+  otel_grafana:
+    type: open_telemetry
+    disabled: false
+    protocol: http
+    endpoint: "http://grafana-lgtm:4318"
+    tlsDisabled: true
+    otlpVersion: "1.3.1"

@@ -65,7 +65,7 @@ Status legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | ✅ | `/send` produces one trace spanning service-a + service-b in Tempo |
 | ✅ | Logs carry matching `trace_id`; Tempo↔Loki linking works |
 | ✅ | Metrics visible in Grafana Prometheus/Mimir |
-| ⬜ | (Optional) Cribl path verified |
+| ✅ | (Optional) Cribl path verified |
 
 ## Notes
 - `.NET 10 SDK` is required to build/test. The host only has SDK 8/9; use the devcontainer

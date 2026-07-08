@@ -100,16 +100,27 @@ or `dotnet_gc_collections_total` to see HTTP and runtime metrics per service.
 
 ## Enabling Cribl (optional)
 
+Cribl Stream is fully pre-configured — no manual UI steps needed. The compose override
+swaps the collector config to route all signals through Cribl before forwarding to Grafana.
+
 ```bash
 # Using Podman
-podman-compose --profile cribl up
+podman-compose -f docker-compose.yml -f docker-compose.cribl.yml --profile cribl up --build
 
 # Using Docker
-docker compose --profile cribl up
+docker compose -f docker-compose.yml -f docker-compose.cribl.yml --profile cribl up --build
 ```
 
-See [deploy/cribl/README.md](deploy/cribl/README.md) for Cribl setup steps and how to
-wire the Collector → Cribl → Grafana pipeline.
+**Pipeline:** `.NET services → OTEL Collector → Cribl Stream (:9000) → Grafana LGTM`
+
+After startup, verify the path:
+
+1. `curl http://localhost:5001/send` — trigger a cross-service trace
+2. Grafana → Tempo — confirm the trace appears (proving Cribl forwarded it)
+3. Grafana → Loki — confirm logs are visible
+4. Cribl UI at http://localhost:9000 → Sources/Destinations → confirm events/sec > 0
+
+See [deploy/cribl/README.md](deploy/cribl/README.md) for details on the pre-configured files.
 
 ## Configuration via environment variables
 

@@ -1,0 +1,37 @@
+services:
+  otel-collector:
+    volumes:
+      - ./deploy/otel-collector-config-cribl.yaml:/etc/otelcol-contrib/config.yaml:ro
+
+  # Init container: copies our config files into the cribl-local named volume
+  # before Cribl starts. Uses a plain busybox image with a shell.
+  cribl-init:
+    image: busybox:latest
+    profiles:
+      - cribl
+    networks:
+      - otel-poc
+    volumes:
+      - ./deploy/cribl/local/cribl:/config-src:ro
+      - cribl-local:/opt/cribl/local
+    command: >
+      sh -c "
+        mkdir -p /opt/cribl/local/cribl/pipelines &&
+        cp /config-src/inputs.yml /opt/cribl/local/cribl/inputs.yml &&
+        cp /config-src/outputs.yml /opt/cribl/local/cribl/outputs.yml &&
+        cp /config-src/routes.yml /opt/cribl/local/cribl/routes.yml &&
+        cp /config-src/pipelines/passthru.yml /opt/cribl/local/cribl/pipelines/passthru.yml &&
+        echo 'Cribl config seeded.'
+      "
+
+  cribl:
+    volumes:
+      - cribl-local:/opt/cribl/local
+    environment:
+      - CRIBL_VOLUME_DIR=
+    depends_on:
+      cribl-init:
+        condition: service_completed_successfully
+
+volumes:
+  cribl-local:

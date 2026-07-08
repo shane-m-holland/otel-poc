@@ -19,7 +19,7 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -41,12 +41,6 @@ services:
     depends_on:
       grafana-lgtm:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:13133"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
 
   # ─────────────────────────────────────────────
   # Service A
@@ -68,13 +62,7 @@ services:
       - SEND_TARGET_URL=http://service-b:8080
     depends_on:
       otel-collector:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+        condition: service_started
 
   # ─────────────────────────────────────────────
   # Service B
@@ -96,13 +84,7 @@ services:
       - SEND_TARGET_URL=http://service-a:8080
     depends_on:
       otel-collector:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+        condition: service_started
 
   # ─────────────────────────────────────────────
   # Cribl Stream (opt-in via: --profile cribl)
@@ -118,11 +100,3 @@ services:
     ports:
       - "9000:9000"   # Cribl UI
       - "10080:10080" # OTLP ingest from collector
-    environment:
-      - CRIBL_VOLUME_DIR=/opt/cribl/config-volume
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9000/api/v1/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 60s

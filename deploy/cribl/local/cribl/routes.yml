@@ -1,0 +1,11 @@
+id: default
+routes:
+  - id: otel_passthrough
+    name: OTel Passthrough
+    filter: "true"
+    pipeline: passthru
+    output: otel_grafana
+    final: true
+    disabled: false
+    clones: []
+    enableOutputExpression: false
