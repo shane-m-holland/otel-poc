@@ -1,7 +1,9 @@
 {
   "name": "OtelPoc .NET 10",
   "image": "mcr.microsoft.com/devcontainers/dotnet:2-10.0",
-  "remoteUser": "root",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "remoteUser": "vscode", 
+  "updateRemoteUserUID": true,
   "customizations": {
     "vscode": {
       "extensions": [
